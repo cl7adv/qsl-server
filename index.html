@@ -1,1 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Servidor de QSL - Radioaficionados</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; background: #eef2f3; padding: 20px; color: #333; }
+        .container { background: white; padding: 30px; border-radius: 15px; max-width: 600px; margin: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h1 { color: #0052d4; margin-bottom: 5px; }
+        .busqueda-caja { margin: 25px 0; padding: 20px; border: 2px dashed #0052d4; border-radius: 10px; }
+        input { padding: 12px; width: 70%; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; text-transform: uppercase; }
+        button { padding: 12px 25px; background: #0052d4; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #002f86; }
+        #resultado { margin-top: 20px; display: none; }
+        .qsl-img { width: 100%; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); margin-top: 15px; }
+        footer { margin-top: 40px; font-size: 0.8em; color: #777; }
+    </style>
+</head>
+<body>
 
+    <div class="container">
+        <h1>📻 Servidor de QSL</h1>
+        <p>Introduce tu indicativo para descargar tu tarjeta de contacto.</p>
+
+        <div class="busqueda-caja">
+            <input type="text" id="indicativo" placeholder="EJ: LU1ABC" onkeyup="if(event.keyCode===13) buscarQSL()">
+            <br><br>
+            <button onclick="buscarQSL()">BUSCAR MI TARJETA</button>
+        </div>
+
+        <div id="resultado">
+            <h3 id="status-msg"></h3>
+            <div id="qsl-container"></div>
+        </div>
+
+        <footer>
+            Confirmación de comunicados - Argentina 73's
+        </footer>
+    </div>
+
+    <script>
+        function buscarQSL() {
+            const indicativo = document.getElementById('indicativo').value.toUpperCase().trim();
+            const container = document.getElementById('qsl-container');
+            const status = document.getElementById('status-msg');
+            const resDiv = document.getElementById('resultado');
+
+            if (indicativo === "") return;
+
+            // Ruta donde estarán las fotos en tu GitHub
+            const urlImagen = `tarjetas/${indicativo}.jpg`;
+
+            // Limpiamos pantalla
+            resDiv.style.display = "block";
+            container.innerHTML = "";
+            status.innerText = "Buscando...";
+
+            // Probamos si la imagen existe
+            const img = new Image();
+            img.src = urlImagen;
+            
+            img.onload = function() {
+                status.innerText = "¡Tarjeta Encontrada!";
+                container.innerHTML = `
+                    <img src="${urlImagen}" class="qsl-img">
+                    <br><br>
+                    <a href="${urlImagen}" download="${indicativo}_QSL.jpg">
+                        <button style="background: #28a745;">DESCARGAR AHORA</button>
+                    </a>
+                `;
+            };
+
+            img.onerror = function() {
+                status.innerText = "No se encontró QSL para: " + indicativo;
+                container.innerHTML = "<p>Asegúrate de que el indicativo sea correcto o inténtalo más tarde.</p>";
+            };
+        }
+    </script>
+</body>
+</html>
