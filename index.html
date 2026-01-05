@@ -3,78 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Servidor de QSL - Radioaficionados</title>
+    <title>CL7ADV | Terminal de Carga</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; background: #eef2f3; padding: 20px; color: #333; }
-        .container { background: white; padding: 30px; border-radius: 15px; max-width: 600px; margin: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        h1 { color: #0052d4; margin-bottom: 5px; }
-        .busqueda-caja { margin: 25px 0; padding: 20px; border: 2px dashed #0052d4; border-radius: 10px; }
-        input { padding: 12px; width: 70%; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; text-transform: uppercase; }
-        button { padding: 12px 25px; background: #0052d4; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        button:hover { background: #002f86; }
-        #resultado { margin-top: 20px; display: none; }
-        .qsl-img { width: 100%; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); margin-top: 15px; }
-        footer { margin-top: 40px; font-size: 0.8em; color: #777; }
+        :root { --accent: #D21034; --blue: #002A8F; --neon-green: #00ff88; --dark: #05070a; --gold: #ffd700; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, sans-serif; 
+            background: radial-gradient(circle at center, #1a1a1a, var(--dark));
+            color: #e0e0e0; margin: 0; display: flex; align-items: center; 
+            justify-content: center; min-height: 100vh; overflow: hidden;
+        }
+        .terminal-card { 
+            width: 90%; max-width: 450px; background: rgba(255, 255, 255, 0.03); 
+            backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 30px; padding: 40px; text-align: center;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.8); position: relative;
+        }
+        .header h1 { font-size: 2.2em; letter-spacing: 5px; margin: 0; color: white; }
+        .header h1 span { color: var(--accent); text-shadow: 0 0 15px var(--accent); }
+        
+        .info-badge {
+            background: linear-gradient(45deg, var(--blue), #00d4ff);
+            color: white; border: none; padding: 8px 20px; border-radius: 50px;
+            font-size: 0.7em; font-weight: bold; cursor: pointer; margin-bottom: 20px;
+        }
+
+        .key-input { 
+            width: 100%; padding: 16px; background: rgba(0,0,0,0.6); border: 1px solid #444;
+            border-radius: 15px; color: white; font-size: 1.1em; text-align: center;
+            box-sizing: border-box; margin-bottom: 20px;
+        }
+        .btn-auth { 
+            width: 100%; padding: 16px; border-radius: 15px; border: none;
+            background: var(--blue); color: white; font-weight: bold; cursor: pointer;
+            transition: 0.3s; font-size: 1em;
+        }
+        #upload-area { display: none; animation: fadeIn 0.8s ease; }
+        
+        .saludo-estaciones {
+            background: rgba(255, 215, 0, 0.05); border: 1px goldenrod dashed;
+            padding: 15px; border-radius: 15px; margin: 20px 0; color: var(--gold);
+            font-style: italic; font-size: 0.85em;
+        }
+
+        .btn-send {
+            background: var(--neon-green); color: black; border: none; padding: 18px;
+            border-radius: 15px; font-weight: bold; cursor: pointer; width: 100%;
+            font-size: 1.1em;
+        }
+        
+        .watermark { position: absolute; bottom: 15px; right: 20px; opacity: 0.2; font-size: 0.6em; color: white; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1>📻 Servidor de QSL</h1>
-        <p>Introduce tu indicativo para descargar tu tarjeta de contacto.</p>
+    <div class="terminal-card">
+        <button class="info-badge" onclick="alert('PROYECTO QSL CL7ADV: Recepción segura de logs ADIF y capturas JPG. ¡73!')">
+            INFO DEL PROYECTO ℹ️
+        </button>
 
-        <div class="busqueda-caja">
-            <input type="text" id="indicativo" placeholder="EJ: LU1ABC" onkeyup="if(event.keyCode===13) buscarQSL()">
-            <br><br>
-            <button onclick="buscarQSL()">BUSCAR MI TARJETA</button>
+        <div class="header">
+            <h1>CL7<span>ADV</span></h1>
+            <div style="font-size: 0.7em; color: #888; letter-spacing: 4px; margin-bottom: 30px;">QSL TERMINAL</div>
         </div>
 
-        <div id="resultado">
-            <h3 id="status-msg"></h3>
-            <div id="qsl-container"></div>
+        <div id="login-area">
+            <input type="password" id="passkey" class="key-input" placeholder="CLAVE DE ACCESO">
+            <button class="btn-auth" onclick="validar()">ENTRAR</button>
         </div>
 
-        <footer>
-            Confirmación de comunicados - Argentina 73's
-        </footer>
+        <div id="upload-area">
+            <div class="saludo-estaciones">
+                "Un cálido saludo y un fuerte 73 a todas las estaciones colaboradoras."
+            </div>
+
+            <form action="https://api.web3forms.com/submit" method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="access_key" value="1643ad96-a67e-4805-9390-b30edd8fe68f">
+
+                <input type="text" name="Callsign" placeholder="SU INDICATIVO" class="key-input" required>
+                <input type="file" name="attachment" style="margin-bottom: 20px; width: 100%;" accept=".adi,.adif,.jpg,.jpeg" required>
+                
+                <button type="submit" class="btn-send">ENVIAR AL BUZÓN 📤</button>
+
+                <input type="hidden" name="redirect" value="https://cl7adv.github.io/cl7adv-qsl/">
+            </form>
+        </div>
+
+        <div class="watermark">POWERED BY CL7ADV</div>
     </div>
 
     <script>
-        function buscarQSL() {
-            const indicativo = document.getElementById('indicativo').value.toUpperCase().trim();
-            const container = document.getElementById('qsl-container');
-            const status = document.getElementById('status-msg');
-            const resDiv = document.getElementById('resultado');
-
-            if (indicativo === "") return;
-
-            // Ruta donde estarán las fotos en tu GitHub
-            const urlImagen = `tarjetas/${indicativo}.jpg`;
-
-            // Limpiamos pantalla
-            resDiv.style.display = "block";
-            container.innerHTML = "";
-            status.innerText = "Buscando...";
-
-            // Probamos si la imagen existe
-            const img = new Image();
-            img.src = urlImagen;
-            
-            img.onload = function() {
-                status.innerText = "¡Tarjeta Encontrada!";
-                container.innerHTML = `
-                    <img src="${urlImagen}" class="qsl-img">
-                    <br><br>
-                    <a href="${urlImagen}" download="${indicativo}_QSL.jpg">
-                        <button style="background: #28a745;">DESCARGAR AHORA</button>
-                    </a>
-                `;
-            };
-
-            img.onerror = function() {
-                status.innerText = "No se encontró QSL para: " + indicativo;
-                container.innerHTML = "<p>Asegúrate de que el indicativo sea correcto o inténtalo más tarde.</p>";
-            };
+        function validar() {
+            const input = document.getElementById('passkey').value;
+            if(input === '73') { 
+                document.getElementById('login-area').style.display = 'none';
+                document.getElementById('upload-area').style.display = 'block';
+            } else {
+                alert("CLAVE INCORRECTA");
+            }
         }
     </script>
 </body>
